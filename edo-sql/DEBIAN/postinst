@@ -1,1 +1,4 @@
 #!/bin/sh
+
+# simple security script
+mysql_secure_installation

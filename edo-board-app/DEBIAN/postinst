@@ -1,0 +1,67 @@
+#!/bin/sh
+set -e
+echo  "Configure edo-board-app ..."
+
+# read parameter
+pread() {
+    if test -z "$2" ; then echo "Enter $1: "; read RET;
+    elif test "$2" = "passwd" ; then echo "Enter $1: "; stty -echo; read RET; stty echo;
+    else echo "Enter $1 (default: $2): "; read RET; test -z "$RET" && RET=$2;
+    fi
+}
+# error
+die() { echo "ERROR: $1" ; exitr 1; }
+
+if test -e "/etc/edo-board-app.conf"; then
+    while read -r SERVERNAME USER;
+        do C_EXIST=true;
+    done < "/etc/edo-board-app.conf"
+else
+    pread "enter server address" "http://localhost:80/"
+    SERVERNAME="$RET"
+    pread "username" "edo_board_app_user"
+    USER="$RET"
+
+    i=0;
+    while test "$i" -lt "5"; do
+        pread "password" passwd
+        PASSWD="$RET"
+        pread "confirm password" passwd
+        PASSWD2="$RET"
+        if test "$PASSWD" = "$PASSWD2"; then
+            break;
+        fi
+        echo "Does not match, retry ($i).";
+        i=$(expr "$i" + "1");
+    done;
+    test "$i" -eq "5" && exit 1;
+fi
+
+# Create User
+UHOME=/home/$USER
+mkdir -p $UHOME
+
+useradd --home $UHOME $USER  || true;
+echo $USER:$PASSWD | chpasswd;
+
+chown $USER:$USER $UHOME;
+chmod 755 $UHOME
+echo "#!/bin/sh" > $UHOME/.xinitrc
+echo "chromium --kiosk $SERVERNAME" >> $UHOME/.xinitrc
+echo "if test -z \"\$DISPLAY\" && test \"\$(tty)\" = \"/dev/tty1\"; then" >> $UHOME/.profile
+echo "exec xinit" >> $UHOME/.profile
+echo "fi" >> $UHOME/.profile
+chown -R $USER:$USER $UHOME/.profile;
+chmod 644 $UHOME/.profile;
+chown -R $USER:$USER $UHOME/.xinitrc;
+chmod 644 $UHOME/.xinitrc;
+
+# Enable autologin
+mkdir -p /etc/systemd/system/getty@tty1.service.d/
+echo "[Service]"> /etc/systemd/system/getty@tty1.service.d/override.conf
+echo "ExecStart=">> /etc/systemd/system/getty@tty1.service.d/override.conf
+echo "ExecStart=-/sbin/agetty --autologin $USER --noclear %I 38400 linux">> /etc/systemd/system/getty@tty1.service.d/override.conf
+systemctl enable getty@tty1.service
+
+# Save config
+echo "$SERVERNAME $USER"> "/etc/edo-board-app.conf"

@@ -18,9 +18,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+
 URL_MK?="https://raw.githubusercontent.com/bennof/debpkg.mk/master/debpkg.mk"
 BUILD_PATH?=./.build
-INSTALL_PATH?=/usr/local/privatedeb/
+REP_NAME?=privatedeb
+INSTALL_PATH?=/usr/local/$(REP_NAME)
 SRCS?=$(shell ls -d */)
 DEBS?=$(SRCS:%/=$(BUILD_PATH)/%.deb)
 
@@ -29,11 +31,11 @@ build: output_dir $(DEBS)
 install:
 	test -d "$(INSTALL_PATH)" || mkdir -p $(INSTALL_PATH)
 	chmod -R 0755 $(INSTALL_PATH)
-	cp $(DEBS) $(INSTALL_PATH)
-	cd /usr/local/edo365deb/; dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
-	chmod -R 0644 /usr/local/edo365deb/*
-	echo '### THIS FILE IS AUTOMATICALLY CONFIGURED ###' > /etc/apt/sources.list.d/edo365.list
-	echo 'deb [trusted=yes] file:/usr/local/edo365deb ./' >> /etc/apt/sources.list.d/edo365.list
+	cp $(BUILD_PATH)/*.deb $(INSTALL_PATH)
+	cd $(INSTALL_PATH); dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+	chmod -R 0644 $(INSTALL_PATH)/*
+	echo '### THIS FILE IS AUTOMATICALLY CONFIGURED ###' > /etc/apt/sources.list.d/$(REP_NAME).list
+	echo 'deb [trusted=yes] file:$(INSTALL_PATH) ./' >> /etc/apt/sources.list.d/$(REP_NAME).list
 
 
 new:

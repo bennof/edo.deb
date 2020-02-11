@@ -1,0 +1,10 @@
+Package: edo-board-app
+Version: 0.0.1
+Section: web
+Priority: optional
+Maintainer: bennof
+Homepage: http://
+Architecture: all
+Depends: xinit, chromium
+Description: install x11 and chromium as board
+
