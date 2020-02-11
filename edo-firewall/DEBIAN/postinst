@@ -1,0 +1,6 @@
+#!/bin/sh
+
+ufw allow ssh
+ufw disable
+ufw enable
+ufw status

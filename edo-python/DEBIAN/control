@@ -1,0 +1,10 @@
+Package: edo-python
+Version: 0.0.1
+Section: web
+Priority: optional
+Maintainer: bennof
+Homepage: http://
+Architecture: all
+Depends: python3-pip, python3-dev
+Description: install python with tools
+

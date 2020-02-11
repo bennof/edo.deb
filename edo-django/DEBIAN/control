@@ -1,0 +1,10 @@
+Package: edo-django
+Version: 0.0.1
+Section: web
+Priority: optional
+Maintainer: bennof
+Homepage: http://
+Architecture: all
+Depends: edo_nginx, edo_python, edo_sql
+Description: django server tools
+

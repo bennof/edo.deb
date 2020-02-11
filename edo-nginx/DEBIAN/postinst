@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# change nginx config
+TF=$(mktemp)
+cat /etc/nginx/nginx.conf > "$TF"
+cat "$TF" | sed -e 's/*server_names_hash_bucket_size*/server_names_hash_bucket_size 64;/g' > /etc/nginx/nginx.conf;
+rm -f "$TF"
+
+systemctl reload nginx
+
+# firewall settings
+ufw allow 'Nginx Full'
+ufw disable
+ufw enable
+ufw status
