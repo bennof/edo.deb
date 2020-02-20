@@ -5,6 +5,6 @@ Priority: optional
 Maintainer: bennof
 Homepage: http://
 Architecture: all
-Depends: python3-pip, python3-dev
+Depends: python3-pip, python3-dev, pipen, git
 Description: install python with tools
 

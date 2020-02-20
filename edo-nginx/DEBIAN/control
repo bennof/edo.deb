@@ -5,6 +5,6 @@ Priority: optional
 Maintainer: bennof
 Homepage: http://
 Architecture: all
-Depends: edo_firewall, sed, nginx
+Depends: edo-firewall, sed, nginx
 Description: install nginx as webserver
 

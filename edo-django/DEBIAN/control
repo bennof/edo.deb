@@ -5,6 +5,6 @@ Priority: optional
 Maintainer: bennof
 Homepage: http://
 Architecture: all
-Depends: edo_nginx, edo_python, edo_sql
+Depends: edo-nginx, edo-python, edo-sql, python-sqlite, sqlite
 Description: django server tools
 

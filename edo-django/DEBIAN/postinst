@@ -1,1 +1,6 @@
 #!/bin/sh
+
+pip install uwsgi
+
+mkdir -p /etc/uwsgi/sites
+

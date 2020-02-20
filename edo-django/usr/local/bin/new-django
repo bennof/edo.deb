@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+die() {
+  echo -e "ERROR: $@"
+  exit 1
+}
+
+test -z $1 && die enter a project name: new-django [project name]
+echo Create Django Project: $1
+mkdir $1 || die failed to create folder $PWD/$1
+cd $1
+wget https://raw.githubusercontent.com/bennof/django.mk/master/django.mk || die downloading django.mk failed 
+make -f django.mk init || die make init failed 

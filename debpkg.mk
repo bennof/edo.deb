@@ -25,19 +25,48 @@ REP_NAME?=privatedeb
 INSTALL_PATH?=/usr/local/$(REP_NAME)
 SRCS?=$(shell ls -d */)
 DEBS?=$(SRCS:%/=$(BUILD_PATH)/%.deb)
+RELEASE=Release
+
+
+.PHONY: $(INSTALL_PATH)/Release /etc/apt/sources.list.d/$(REP_NAME).list $(INSTALL_PATH)/Packages.gz $(INSTALL_PATH)/Packages
 
 build: output_dir $(DEBS)
 
-install:
+install: copy_files $(INSTALL_PATH)/Release /etc/apt/sources.list.d/$(REP_NAME).list
+
+
+# INSTALL
+copy_files: 
 	test -d "$(INSTALL_PATH)" || mkdir -p $(INSTALL_PATH)
 	chmod -R 0755 $(INSTALL_PATH)
 	cp $(BUILD_PATH)/*.deb $(INSTALL_PATH)
+
+$(INSTALL_PATH)/Packages:
+	cd $(INSTALL_PATH); dpkg-scanpackages . /dev/null > Packages
+	chmod -R 0644 $(INSTALL_PATH)/*
+
+$(INSTALL_PATH)/Packages.gz:
 	cd $(INSTALL_PATH); dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
 	chmod -R 0644 $(INSTALL_PATH)/*
-	echo '### THIS FILE IS AUTOMATICALLY CONFIGURED ###' > /etc/apt/sources.list.d/$(REP_NAME).list
-	echo 'deb [trusted=yes] file:$(INSTALL_PATH) ./' >> /etc/apt/sources.list.d/$(REP_NAME).list
+
+$(INSTALL_PATH)/Release: $(INSTALL_PATH)/Packages.gz $(INSTALL_PATH)/Packages
+	echo "Origin: $(REP_NAME)" > $@
+	echo "Label: $(REP_NAME)" >> $@
+	echo "Suite: stable" >> $@
+	echo "Date: $(shell date -R -u)" >> $@
+	echo "Architectures: all" >> $@
+	echo "Components: ." >> $@
+	echo "Description: Private Debian Package Repository" >> $@
+	echo "MD5Sum:" >> $@
+	echo " $(shell md5sum $(INSTALL_PATH)/Packages.gz | cut -f 1 -d ' ') $(shell stat -c%s $(INSTALL_PATH)/Packages.gz) Packages.gz" >> $@ 
+	echo " $(shell md5sum $(INSTALL_PATH)/Packages | cut -f 1 -d ' ') $(shell stat -c%s $(INSTALL_PATH)/Packages) Packages" >> $@ 
+
+/etc/apt/sources.list.d/$(REP_NAME).list:
+	echo '### THIS FILE IS AUTOMATICALLY CONFIGURED ###' > $@
+	echo 'deb [trusted=yes] file:$(INSTALL_PATH) ./ ' >> $@
 
 
+# CREATE
 new:
 	@test -n $(NAME) || echo "ERROR: no NAME defined"
 	@test -n $(NAME) ||exit 1 
@@ -55,11 +84,18 @@ new:
 	@echo "Description: " >> $(NAME)/DEBIAN/control 
 	@echo "" >> $(NAME)/DEBIAN/control 
 
-clean:
-	rm -rf $(BUILD_PATH)
+# BUILD
+$(BUILD_PATH)/%.deb: %
+	dpkg-deb -b $< $(BUILD_PATH)
 
 output_dir:
 	mkdir -p $(BUILD_PATH)
+
+
+# CLEAN
+clean:
+	rm -rf $(BUILD_PATH)
+
 
 help:
 	@echo "Help debpkg.mk: "
@@ -67,7 +103,7 @@ help:
 update:
 	@echo "updating"
 	wget $(URL_MK)  || curl -O $(URL_MK)
-
+# init
 init: 
 	apt-get install dpkg dpkg-dev gzip
 
@@ -79,5 +115,6 @@ test:
 	@echo "Sourece Dirs: $(SRCS)"
 	@echo "deb-Files:    $(DEBS)"
 
-$(BUILD_PATH)/%.deb: %
-	dpkg-deb -b $< $(BUILD_PATH)
+
+
+
